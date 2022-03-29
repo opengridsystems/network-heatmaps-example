@@ -1,37 +1,27 @@
-## Welcome to GitHub Pages
+# Network Heatmaps Example
 
-You can use the [editor on GitHub](https://github.com/opengridsystems/network-heatmaps-example/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+This is a working example of the proposed heatmap data standard for network operators being developed by [Ofgem](https://www.ofgem.gov.uk/) under the [LTDS](https://www.ofgem.gov.uk/publications/next-steps-our-reforms-long-term-development-statement-ltds-and-key-enablers-dso-programme-work) reforms.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Mapbox Rendering of JSON data
 
-### Markdown
+### Heatmap Data Format
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+This example uses [JSON](https://www.json.org/) serialisation of the data taken from the [Network Heatmaps API](https://github.com/opengridsystems/network-heatmaps-api) repository, with the [Sample JSON data](https://github.com/opengridsystems/network-heatmaps-api/blob/main/sample-data/sample-data.json) used directly, converted into [GeoJSON](https://geojson.org) with a small Javascript function, then used with [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/api/) layers to render Substation locations and two example circuits.
 
-```markdown
-Syntax highlighted code block
+### Data Source
 
-# Header 1
-## Header 2
-### Header 3
+The data set used is derived from public [network demand & generation capacity](https://network-maps.ssen.co.uk/) data supplied by [SSEN](https://www.ssen.co.uk/).
 
-- Bulleted
-- List
+The data set used in this example is **not** current, and reflects a historical set.  It also contains two example circuits in the Perth area that are included for illustration purposes.
 
-1. Numbered
-2. List
+### Map Rendering
 
-**Bold** and _Italic_ and `Code` text
+The icons on the map are coloured based on the Red, Amber, Green (RAG) status of the substation based on its **generation capacity**.  The circuits are coloured based on their **load capacity**. Hovering the mouse over the icon will display all the _populated_ properties of the data set.  The properties are all defined in the [heatmap data definition documentation](https://github.com/opengridsystems/network-heatmaps-api/tree/main/documentation).
 
-[Link](url) and ![Image](src)
-```
+## Alternative Format
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
+The same data can be viewed as an [Excel](https://github.com/opengridsystems/network-heatmaps-api/blob/main/sample-data/sample-data.xlsx) file. 
 
-### Jekyll Themes
+## Development & Licensing
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/opengridsystems/network-heatmaps-example/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+This code was developed by [Open Grid Systems Ltd](https://www.opengrid.com) in its role as delivery partner to Ofgem for this process.  All code is made available under the open source [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
