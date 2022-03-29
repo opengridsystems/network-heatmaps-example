@@ -22,6 +22,10 @@ The data set used in this example is **not** current, and reflects a historical 
 
 The icons on the map are coloured based on the Red, Amber, Green (RAG) status of the substation based on its **generation capacity**.  The circuits are coloured based on their **load capacity**. Hovering the mouse over the icon will display all the _populated_ properties of the data set.  The properties are all defined in the [heatmap data definition documentation](https://github.com/opengridsystems/network-heatmaps-api/tree/main/documentation).
 
+### Source Code
+
+The source code for parsing and displaying the data can be found in the [GitHub repository](https://github.com/opengridsystems/network-heatmaps-example). The Javascript used is embedded within the [index.html](https://github.com/opengridsystems/network-heatmaps-example/blob/main/map/index.html) HTML file.
+
 ## Alternative Format
 
 The same data can be viewed as an [Excel](https://github.com/opengridsystems/network-heatmaps-api/blob/main/sample-data/sample-data.xlsx) file. 
