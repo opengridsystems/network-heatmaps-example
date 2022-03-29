@@ -4,6 +4,10 @@ This is a working example of the proposed heatmap data standard for network oper
 
 ## Mapbox Rendering of JSON data
 
+[![Heatmap Preview](./images/heatmap-preview.png)](./map)
+
+[Visit Heatmap Example](./map)
+
 ### Heatmap Data Format
 
 This example uses [JSON](https://www.json.org/) serialisation of the data taken from the [Network Heatmaps API](https://github.com/opengridsystems/network-heatmaps-api) repository, with the [Sample JSON data](https://github.com/opengridsystems/network-heatmaps-api/blob/main/sample-data/sample-data.json) used directly, converted into [GeoJSON](https://geojson.org) with a small Javascript function, then used with [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/api/) layers to render Substation locations and two example circuits.
