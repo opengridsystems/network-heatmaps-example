@@ -6,6 +6,10 @@ Example implementation of the network heat maps API and data format using Mapbox
 This project provides an example of how the heatmap data standard in its JSON serialisation
 format can be used with an open source mapping library to display the data geographically.
 
+[![Heatmap Preview](https://opengridsystems.github.io/network-heatmaps-example/images/heatmap-preview.png)](./map)
+
+[Vist Heatmap Example](https://opengridsystems.github.io/network-heatmaps-example/map)
+
 The Javascript code is inline within the [index.html](./map/index.html) file, and uses the
 Mapbox GL API and JQuery to pull, parse, process, and render the data.  This example code provides
 a simple tabular display of the properties of each substation and circuit.
