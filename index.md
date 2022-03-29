@@ -1,6 +1,6 @@
 # Network Heatmaps Example
 
-This is a working example of the proposed heatmap data standard for network operators being developed by [Ofgem](https://www.ofgem.gov.uk/) under the [LTDS](https://www.ofgem.gov.uk/publications/next-steps-our-reforms-long-term-development-statement-ltds-and-key-enablers-dso-programme-work) reforms.
+This is a working example of the proposed [heatmap data standard](https://opengridsystems.github.io/network-heatmaps-api/) for network operators being developed by [Ofgem](https://www.ofgem.gov.uk/) under the [LTDS](https://www.ofgem.gov.uk/publications/next-steps-our-reforms-long-term-development-statement-ltds-and-key-enablers-dso-programme-work) reforms.
 
 ## Mapbox Rendering of JSON data
 
