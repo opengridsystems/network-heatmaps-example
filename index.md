@@ -4,6 +4,10 @@ This is a working example of the proposed heatmap data standard for network oper
 
 ## Mapbox Rendering of JSON data
 
+[![Heatmap Preview](./images/heatmap-preview.png)](./map)
+
+[Visit Heatmap Example](./map)
+
 ### Heatmap Data Format
 
 This example uses [JSON](https://www.json.org/) serialisation of the data taken from the [Network Heatmaps API](https://github.com/opengridsystems/network-heatmaps-api) repository, with the [Sample JSON data](https://github.com/opengridsystems/network-heatmaps-api/blob/main/sample-data/sample-data.json) used directly, converted into [GeoJSON](https://geojson.org) with a small Javascript function, then used with [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/api/) layers to render Substation locations and two example circuits.
@@ -17,6 +21,10 @@ The data set used in this example is **not** current, and reflects a historical 
 ### Map Rendering
 
 The icons on the map are coloured based on the Red, Amber, Green (RAG) status of the substation based on its **generation capacity**.  The circuits are coloured based on their **load capacity**. Hovering the mouse over the icon will display all the _populated_ properties of the data set.  The properties are all defined in the [heatmap data definition documentation](https://github.com/opengridsystems/network-heatmaps-api/tree/main/documentation).
+
+### Source Code
+
+The source code for parsing and displaying the data can be found in the [GitHub repository](https://github.com/opengridsystems/network-heatmaps-example). The Javascript used is embedded within the [index.html](https://github.com/opengridsystems/network-heatmaps-example/blob/main/map/index.html) HTML file.
 
 ## Alternative Format
 
