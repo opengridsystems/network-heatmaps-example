@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Heatmaps Example | SSEN</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+<style>
+	body { margin: 0; padding: 0; font-family: 'Quicksand', sans-serif; font-weight: 500;}
+	a, a:visited{
+		color: rgb(33,66,243);
+		text-decoration: none;
+		font-weight: 600;
+	}
+	a:hover{
+		color: rgb(243,66,33);
+	}
+	#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+	.key { position: absolute; top: 1em; left: 1em; width: 20em; z-index:999; padding: 0.5em; background: rgba(255,255,255,0.6); border-radius: 0.5em;}
+	.key h1{ font-size: large; margin: 0.5em 0;}
+	.key p{ font-size: small; margin: 0 0 0.5em 0}
+	.key .control{
+		position: absolute; right: 0.5em; top: 0.25em; font-size: x-small;
+		transition-duration: 0.3s;
+		transition-property: transform;
+
+	}
+	.control-up{
+		transform: rotate(180deg);
+ 		-webkit-transform: rotate(180deg);
+	}
+	table{border-collapse: collapse;}
+	td{border: 1px solid rgba(0,0,0,0.25); padding: 0 0.5em;}
+</style>
+</head>
+<body>
+<div class="key">
+	<div class="control"><a id ="key-control" href="#">&#9650;</a></div>
+	<h1>Network Heatmaps Example</h1>
+	<div id="key-contents">
+	<p>Working example of the proposed heatmap data standard for network operators being developed by <a href="https://www.ofgem.gov.uk" target="_blank">Ofgem</a> under the <a href="https://www.ofgem.gov.uk/publications/next-steps-our-reforms-long-term-development-statement-ltds-and-key-enablers-dso-programme-work" target="_blank">LTDS</a> reforms. This example uses the <a href="https://www.json.org/" target="_blank">JSON</a> serialisation of the data with the <a href="https://docs.mapbox.com/mapbox-gl-js/api/" target="_blank">Mapbox GL</a> API.</p>
+	<p>The example data set displayed is derived from a historical <a href="https://network-maps.ssen.co.uk/" target="_blank">network demand &amp; generation capacity</a> data set from <a href="https://www.ssen.co.uk" target="_blank">SSEN</a>,
+		with additional data added for illustrative purposes.</p>
+		<p>The <a href="https://github.com/opengridsystems/network-heatmaps-example" target="_blank">source code</a> for this page and the
+		example <a href="https://github.com/opengridsystems/network-heatmaps-api" target="_blank">data &amp; documentation</a> can be accessed on GitHub.</p>
+	<p>The code and data sets used were developed by <a href="https://www.opengrid.com" target="_blank">Open Grid Systems Ltd</a> in their role as project delivery partner.</p>
+	</div>
+
+</div>
+<div id="map"></div>
+
+<script>
+
+	jQuery("#key-control").on("click", function(){
+		if (jQuery("#key-contents").is(":visible")){
+			jQuery("#key-contents").slideUp();
+			jQuery(this).parent().addClass("control-up");
+		}else{
+			jQuery("#key-contents").slideDown();
+			jQuery(this).parent().removeClass("control-up");
+		}
+
+	})
+	// Convert our JSON data into a simple GeoJSON format
+	const toGeoJSON = function(json){
+		let props = {...json};
+		delete props.Substations;
+		delete props.Circuits;
+		let featureCollection = {type:"FeatureCollection", properties:props, features:[]};
+		jQuery.each(json.Substations, function(i, station){
+			let feature = {type:"Feature", properties:station, geometry:{type:"Point", coordinates:[station.longitude, station.latitude]}};
+			featureCollection.features.push(feature);
+		});
+		jQuery.each(json.Circuits, function(i, circuit){
+			if (circuit.Geometry == undefined || circuit.Geometry.Lines == undefined || circuit.Geometry.Lines.length == 0){
+				return;
+			}
+
+			// Create the properties from the underlying data but scrub out the geometry which will become part of the GeoJSON
+			let props = {...circuit};
+			delete props.Geometry;
+			let geometry = circuit.geometry;
+			let geom = {coordinates:[]};
+
+			// For a single line we create a LineString, for more than one a MultiLineString
+			if (circuit.Geometry.Lines.length == 1){
+					geom.type = "LineString";
+					let line = circuit.Geometry.Lines[0];
+					jQuery.each(line.Coordinates, function(i, c){
+						geom.coordinates.push([c.longitude, c.latitude]);
+					});
+			}else if (circuit.Geometry.Lines.length > 1){
+					geom.type = "MultiLineString";
+					jQuery.each(circuit.Geometry.Lines, function(i, line){
+							let coords = [];
+							geom.coordinates.push(coords);
+							jQuery.each(line.Coordinates, function(i, c){
+								coords.push([c.longitude, c.latitude]);
+							});
+					});
+			}else{
+				return;
+			}
+			let feature = {type:"Feature", properties:props, geometry:geom};
+			featureCollection.features.push(feature);
+		});
+
+		return featureCollection;
+	}
+
+	// TO MAKE THE MAP APPEAR YOU MUST
+	// ADD YOUR ACCESS TOKEN FROM
+	// THE BELOW TOKEN is for www.opengrid.com
+	// and will not work on other sites
+	// https://account.mapbox.com
+	mapboxgl.accessToken = 'pk.eyJ1Ijoib3BlbmdyaWQiLCJhIjoiY2wxY2E2MGV4MDVyNzNqbzJ2cjR3bzdnbiJ9.Q48awQ8Ifs4ePBoKr_mf7A';
+
+			const map = new mapboxgl.Map({
+        container: 'map', // container ID
+				// style the map using a basic Open Grid defined light style
+        style: 'mapbox://styles/opengrid/ckx6tfhyp8dux15s9shlw1dyq',
+        zoom: 5, // starting zoom
+        center: [-2.3291015625,54.71192884840614] // starting center over Great Britain
+    });
+		// Add the map search facility
+		map.addControl(
+			new MapboxGeocoder({
+				accessToken: mapboxgl.accessToken,
+				mapboxgl: mapboxgl
+			})
+		);
+		map.addControl(new mapboxgl.NavigationControl());
+
+		let hoveredStationId = null;
+
+    map.on('load', () => {
+
+			// Grab the JSON data from the server
+			jQuery.get('https://raw.githubusercontent.com/opengridsystems/network-heatmaps-api/main/sample-data/sample-data.json', function(json){
+				if (typeof json != 'object') json = JSON.parse(json); // GitHub returns text not JSON so we need to parse it
+				// Convert the JSON into GeoJSON
+				let geojson = toGeoJSON(json);
+
+				// Create the data source from the converted GeoJSON for circuits and stations
+					map.addSource('heatmap-data', {
+	            type: 'geojson',
+	            data: geojson
+	        });
+
+					// Add a heatmap layer for the circuits to be drawn
+					 map.addLayer({
+						 'id': 'heatmap-circuits-layer',
+						 'type': 'line',
+						 'source': 'heatmap-data',
+						 'paint': {
+							 // Colour the lines based on the load constaint red/amber/green values
+							 'line-color': [	'match',
+								 ['get', 'loadConstraint'],
+								 'Red',
+								 '#B90502',
+								 'Amber',
+								 '#B96402',
+								 'Green',
+								 '#1F8301',
+								 /* other */ '#5B8E9F'
+							 ],
+							 'line-width': 4
+						 }
+					 });
+					// Add a heatmap stations layer
+	        map.addLayer({
+	            'id': 'heatmap-stations-layer',
+	            'type': 'circle',
+	            'source': 'heatmap-data',
+	            'paint': {
+									// Set the radius of the icon based on whether it's a GSP, BSP, Primary or Secondary
+	                'circle-radius': [
+											'match',
+											['get', 'type'],
+											'GSP',
+											10,
+											'BSP',
+											8,
+											'Primary',
+											6,
+											'Secondary',
+											4,
+											/* other */ 0
+										],
+	                'circle-stroke-width': [
+											'match',
+											['get', 'type'],
+											'GSP',
+											4,
+											'BSP',
+											2,
+											'Primary',
+											1,
+											/* other */ 0
+										],
+									'circle-stroke-color': [
+										 // Colour the outside of the icon based on the type
+											'match',
+											['get', 'type'],
+											'GSP',
+											'#00f',
+											'BSP',
+											'#7F007F',
+											'Primary',
+											'#000',
+											/* other */ '#44c2fd'
+										],
+	                'circle-color': [
+										// Colour the inside of the icon based on the generation constraint
+											'match',
+											['get', 'generationConstraint'],
+											'Red',
+											'#B90502',
+											'Amber',
+											'#B96402',
+											'Green',
+											'#1F8301',
+											/* other */ '#5B8E9F'
+										]
+	            }
+	        });
+
+					const popup = new mapboxgl.Popup({
+	             closeButton: false,
+	             closeOnClick: false
+	         });
+
+					 // When we mouse-over a line or substation, show the properties
+					 const handleOverlay = function(e){
+						 		// Change the cursor style as a UI indicator.
+						 		map.getCanvas().style.cursor = 'pointer';
+
+						 		// Copy coordinates array.
+						 		const properties = e.features[0].properties;
+						 		let coordinates;
+								if (e.features[0].geometry.type == "Point")
+									coordinates = e.features[0].geometry.coordinates.slice();
+								else
+									coordinates = [e.lngLat.lng, e.lngLat.lat];
+
+
+						 		let genConstraint = properties.generationConstraint;
+						 		if (genConstraint == undefined) genConstraint = "Unknown";
+
+						 		let table = jQuery("<table>");
+						 		{
+						 			let row = jQuery("<tr>").appendTo(table);
+						 			let header = jQuery("<th>").attr("colspan", 2).appendTo(row);
+									let type = properties.type;
+									if (e.features[0].properties.type == undefined)
+										type = "Circuit"
+									else
+										type = type+" Substation";
+									jQuery("<b>").text(type).appendTo(header);
+						 			jQuery("<span>").text(" | "+properties.name).appendTo(header);
+
+
+						 		}
+						 		// GeoJSON features do not handle nested objects well so we'll split them out
+						 		Object.keys(properties).forEach(function(key) {
+						 		 let val = properties[key];
+						 		 if ((typeof val === 'string' || val instanceof String) && (val.substring(0,1) == "{" || val.substring(0,1) == "[")){
+						 			 properties[key] = JSON.parse(val);
+						 		 }else if (key!="mRID" && (typeof val === 'string' || val instanceof String)){
+									 // This should refer to another station so we can grab its name from the data
+									 // and display that rather than the mRID value
+									 const otherStation = map.querySourceFeatures('heatmap-data', {
+						 				 sourceLayer: 'heatmap-stations-layer',
+						 				 filter: ['in', 'mRID', val]
+						 			 });
+						 			 if (otherStation.length>0){
+						 				 properties[key] = otherStation[0].properties.name;
+						 			 }
+						 		 }
+
+						 		});
+								// Iterate through the properties and display them in the table
+						 		jQuery.each(properties, function(k, v){
+						 			 let row = jQuery("<tr>").appendTo(table);
+						 			 jQuery("<td>").text(k).appendTo(row);
+						 			 if (jQuery.isArray(v))
+						 				 jQuery("<td>").text(v.length).appendTo(row);
+						 			 else
+						 				 jQuery("<td>").text(v).appendTo(row);
+						 		});
+						 		// Ensure that if the map is zoomed out such that multiple
+						 		// copies of the feature are visible, the popup appears
+						 		// over the copy being pointed to.
+						 		while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+						 				coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+						 		}
+
+						 		// Populate the popup and set its coordinates
+						 		// based on the feature found.
+						 		popup.setLngLat(coordinates).setDOMContent(table[0]).addTo(map);
+						 		popup.setMaxWidth("90%")
+					 }
+
+					 // Handle displaying and hiding the popup
+					 map.on('mouseenter', 'heatmap-circuits-layer', (e) => {
+						 handleOverlay(e);
+					 });
+
+	         map.on('mouseenter', 'heatmap-stations-layer', (e) => {
+						 	handleOverlay(e);
+	         });
+
+	         map.on('mouseleave', 'heatmap-stations-layer', () => {
+	             map.getCanvas().style.cursor = '';
+	             popup.remove();
+	         });
+
+					 map.on('mouseleave', 'heatmap-circuits-layer', () => {
+							map.getCanvas().style.cursor = '';
+							popup.remove();
+					});
+	    });
+		});
+</script>
+
+</body>
+</html>
